@@ -1,0 +1,19 @@
+[project]
+name = "mcp-servvers"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Shahzaib_Dev", email = "shahzaibsheikh355@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "mcp-use>=1.7.0",
+]
+
+[project.scripts]
+mcp-servvers = "mcp_servvers:main"
+
+[build-system]
+requires = ["uv_build>=0.12.1,<0.13.0"]
+build-backend = "uv_build"
