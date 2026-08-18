@@ -3,7 +3,7 @@ import httpx  # async client
 from mcp.server.fastmcp import FastMCP
 
 # initilize fastMCP server
-mcp = FastMCP(name="weather", host="0.0.0.0", port=8050)
+mcp = FastMCP(name="weather", host="0.0.0.0", port=8000)
 
 
 # constants

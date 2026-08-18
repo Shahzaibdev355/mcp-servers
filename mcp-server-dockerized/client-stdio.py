@@ -1,25 +1,19 @@
 import asyncio
 import nest_asyncio
-from mcp import ClientSession
-from mcp.client.sse import sse_client
-
-nest_asyncio.apply()
-
-"""
-run server before running the script
-server is configured to use sse transport
-server is listening on port 8050
-
-first run
-uv run server.py
-
-"""
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
 
 
 async def main():
 
+    # server parameters
+    server_params = StdioServerParameters(
+        command="python",  # the command to run the server
+        args=["server.py"],  # args to the comd
+    )
+
     # connect to the server using sse
-    async with sse_client("http://localhost:8000/sse") as (read_stream, write_stream):
+    async with stdio_client(server_params) as (read_stream, write_stream):
         async with ClientSession(read_stream, write_stream) as session:
 
             # initialize the connection
