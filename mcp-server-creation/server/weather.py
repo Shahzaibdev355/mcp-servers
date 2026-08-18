@@ -6,7 +6,7 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("weather")
 
 #constants
-NWS_API+BASE = "https://api.weather.gov"
+NWS_API_BASE = "https://api.weather.gov"
 USER_AGENT = "weather-app/1.0"
 
 async def make_nws_request(url: str) -> dict[str, Any] | None:
@@ -36,3 +36,25 @@ def format_alert(feature: dict) -> str:
         Description: {props.get('description', 'no description available')}
         Instructions: {props.get('instruction', 'no specific instruction')}
     """
+
+
+async def get_alerts(state: str) -> str:
+
+    """
+        Get weather alerts for a US state.
+        Args:
+        state: Two-letter US state code (e.g. CA, NY)
+    """
+
+    url = f"{NWS_API_BASE}/alerts/active/area/{state}"
+    data = await make_nws_request(url)
+
+    if not data or "features" not in data:
+        return "Unable to fetch alerts or no alerts found"
+
+    if not data["features"]:
+        return "No active alerts for this state"
+
+    alerts = [format_alert(feature) for feature in data["features"]]
+    return "\n---\n".join(alerts)
+
