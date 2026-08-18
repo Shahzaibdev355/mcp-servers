@@ -26,27 +26,27 @@ async def run_memory_chat():
     # to langchain-mcp-adapters' expected format (command/args/transport)
     client = MultiServerMCPClient(
         {
-            "playwright": {
-                "command": "npx",
-                "args": ["@playwright/mcp@latest"],
-                "transport": "stdio",
-                "env": {"DISPLAY": ":1"},
-            },
+            # "playwright": {
+            #     "command": "npx",
+            #     "args": ["@playwright/mcp@latest"],
+            #     "transport": "stdio",
+            #     # "env": {"DISPLAY": ":1"},
+            # },
             # "airbnb": {
             #     "command": "npx",
             #     "args": ["-y", "@openbnb/mcp-server-airbnb", "--ignore-robots-txt"],
             #     "transport": "stdio",
             # },
-            # "tavily": {
-            #     "command": "npx",
-            #     "args": [
-            #         "-y",
-            #         "mcp-remote",
-            #         "https://mcp.tavily.com/mcp/?tavilyApiKey="
-            #         + os.getenv("TAVILY_API_KEY"),
-            #     ],
-            #     "transport": "stdio",
-            # },
+            "tavily": {
+                "command": "npx",
+                "args": [
+                    "-y",
+                    "mcp-remote",
+                    "https://mcp.tavily.com/mcp/?tavilyApiKey="
+                    + os.getenv("TAVILY_API_KEY"),
+                ],
+                "transport": "stdio",
+            },
         }
     )
 
@@ -56,19 +56,24 @@ async def run_memory_chat():
     # i have some limitation regarding model so will limit to one tool
     all_tools = await client.get_tools()
 
-    # tools = [
-    #     tool
-    #     for tool in all_tools
-    #     if tool.name == "tavily_search"
-    # ]
-
     tools = [
         tool
         for tool in all_tools
-        if tool.name == "browser_navigate"
+        if tool.name == "tavily_search"
     ]
 
-
+    # tools = [
+    #     tool
+    #     for tool in all_tools
+    #     # if tool.name == "browser_navigate"
+    #     if tool.name
+    #     in [
+    #         "browser_navigate",
+    #         "browser_snapshot",
+    #         "browser_click",
+    #         "browser_type",
+    #     ]
+    # ]
 
     print(f"Loaded {len(tools)} tools: {[t.name for t in tools]}")
 
@@ -86,29 +91,28 @@ async def run_memory_chat():
         # - Do not include minPrice, maxPrice, propertyType, or cursor unless needed.
         # - For airbnb_search, use the exact tool schema.
         # """,
-
-        # system_prompt="""
-        # You are a web search assistant.
-
-        # When answering questions:
-        # - Use the available Tavily search tool when the user asks for current,
-        # factual, or web-based information.
-        # - Prefer the search tool instead of answering from your own knowledge
-        # when web search is requested.
-        # - Pass only parameters required by the tool schema.
-        # - NEVER send null values.
-        # - Return search results clearly and concisely.
-        # """,
-
         system_prompt="""
-        You are a browser automation assistant.
+        You are a web search assistant.
+        When answering questions:
+        - Use the available Tavily search tool when the user asks for current,
+        factual, or web-based information.
+        - Prefer the search tool instead of answering from your own knowledge
+        when web search is requested.
+        - Pass only parameters required by the tool schema.
+        - NEVER send null values.
+        - Return search results clearly and concisely.
+        """,
+        # system_prompt="""
+        # You are a browser automation assistant.
 
-        When the user asks you to open or navigate to a website:
-        - Use the browser_navigate tool.
-        - Do not answer from your own knowledge.
-        - Only navigate to the URL requested by the user.
-        - Do not use any other tools.
-        """
+        # Rules:
+        # - When the user asks to open or navigate to a website, use ONLY browser_navigate.
+        # - Navigate only to the URL requested by the user.
+        # - Do NOT call browser_close.
+        # - Do NOT call browser_tabs or any other browser tool unless explicitly requested.
+        # - After browser_navigate succeeds, stop and return a short confirmation.
+        # - Keep the browser open after navigation.
+        # """,
     )
 
     # manual conversation history — replicates mcp_use's memory_enabled=True
@@ -141,9 +145,18 @@ async def run_memory_chat():
 
                 response = await agent.ainvoke({"messages": conversation_history})
 
+
+                for message in response["messages"]:
+                    print("\nMESSAGE:", type(message).__name__)
+                    print("CONTENT:", getattr(message, "content", ""))
+
+                    if hasattr(message, "tool_calls") and message.tool_calls:
+                        print("TOOL CALLS:", message.tool_calls)
+
                 # extract the assistant's final reply
                 ai_message = response["messages"][-1]
                 print(ai_message.content)
+                
 
                 # append assistant reply so next turn has context
                 conversation_history.append(

@@ -3,3 +3,5 @@ mcp-use
 praisonaiagents
 langchain-mcp-adapters 
 langgraph
+
+mcp[cli]
