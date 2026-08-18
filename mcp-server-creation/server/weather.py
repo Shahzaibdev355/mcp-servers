@@ -37,7 +37,7 @@ def format_alert(feature: dict) -> str:
         Instructions: {props.get('instruction', 'no specific instruction')}
     """
 
-
+@mcp.tool()
 async def get_alerts(state: str) -> str:
 
     """
@@ -58,3 +58,9 @@ async def get_alerts(state: str) -> str:
     alerts = [format_alert(feature) for feature in data["features"]]
     return "\n---\n".join(alerts)
 
+
+
+@mcp.resource("echo://{msg}")
+def echo_resource(msg: str) -> str:
+    """Echo a message as a resource"""
+    return f"resource echo: {msg}"
