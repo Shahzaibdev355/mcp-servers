@@ -62,3 +62,16 @@ async def get_alerts(state: str) -> str:
 def echo_resource(msg: str) -> str:
     """Echo a message as a resource"""
     return f"resource echo: {msg}"
+
+
+
+if __name__ == "__main__":
+    transport = "sse"
+    if transport == "stdio":
+        print("running server with stdio transport")
+        mcp.run(transport="stdio")
+    elif transport == "sse":
+        print("running server with sse transport")
+        mcp.run(transport="sse")
+    else:
+        raise ValueError(f"Unknown transport: {transport}")

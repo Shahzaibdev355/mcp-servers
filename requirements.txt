@@ -5,3 +5,4 @@ langchain-mcp-adapters
 langgraph
 
 mcp[cli]
+nest_asyncio
